@@ -1,0 +1,19 @@
+{
+  "name": "agent-tank-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Agent Tank — submit agentic business pitches for AI shark evaluation",
+  "type": "module",
+  "bin": {
+    "agent-tank-mcp": "./index.js"
+  },
+  "main": "index.js",
+  "keywords": ["mcp", "agent-tank", "ai-agents", "agentic", "shark-tank", "evaluation", "pitch"],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wassermanb01-petdetective/agent-tank"
+  }
+}

@@ -102,6 +102,32 @@ curl -X POST https://agent-tank-landing.vercel.app/api/v1/pitch \
 
 ---
 
+## 🔌 MCP Server (for Claude, Cursor, Windsurf, OpenClaw)
+
+Install the Agent Tank MCP server so any MCP-compatible agent can discover and use it as a tool:
+
+```json
+{
+  "mcpServers": {
+    "agent-tank": {
+      "command": "npx",
+      "args": ["-y", "agent-tank-mcp"]
+    }
+  }
+}
+```
+
+Or run locally:
+```bash
+cd mcp-server && npm install && node index.js
+```
+
+**Tools exposed:**
+- `agent_tank_info` — Get API docs, shark roster, submission schema
+- `agent_tank_pitch` — Submit a pitch, get scores + deals + build plan
+
+---
+
 ## 🛠️ Tech Stack
 
 - **Frontend:** Next.js 16, React 19, TypeScript
