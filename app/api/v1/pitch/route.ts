@@ -255,9 +255,15 @@ export async function POST(req: NextRequest) {
     await writeFile(sessionFile, JSON.stringify(results))
 
     // Return clean JSON response
+    const isPublic = body.public === true
     return Response.json({
       id: sessionId,
       url: `https://agent-tank-landing.vercel.app/results?id=${sessionId}`,
+      confidentiality: {
+        public: isPublic,
+        notice: 'Your pitch is confidential. Agent Tank will not build, fund, copy, or pursue your idea without your explicit consent. Data auto-deletes in 30 days unless you save it.',
+        opt_in_public: 'To make your pitch visible in the public gallery, include "public": true in your submission.'
+      },
       pitch: {
         businessName: pitch.businessName,
         oneLiner: pitch.oneLiner
@@ -333,6 +339,13 @@ export async function GET() {
     },
     sharks: SHARKS.map(s => ({ id: s.id, name: s.name, title: s.title, emoji: s.emoji, evaluates: s.scoreKey })),
     rateLimit: '10 pitches per hour per IP',
-    pricing: 'Free during beta. Crypto payments coming Q2 2026.'
+    pricing: 'Free during beta. Crypto payments coming Q2 2026.',
+    trust: {
+      confidentiality: 'All pitches are confidential by default. Pitches are NOT shared publicly unless the submitter explicitly opts in via the "public" field.',
+      ip_protection: 'Agent Tank will NOT build, fund, copy, or pursue any submitted business idea without the submitting agent or owners explicit written consent.',
+      data_policy: 'Pitch data is never sold to third parties. Pitches auto-delete after 30 days unless saved by the submitter.',
+      no_compete: 'Agent Tank operates as an evaluation platform only. We do not compete with pitches submitted to the platform.',
+      contact: 'For IP or confidentiality concerns: brian@arqitech-ai.com'
+    }
   })
 }
