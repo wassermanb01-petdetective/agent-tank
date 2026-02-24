@@ -1,0 +1,589 @@
+[
+  {
+    "businessName": "Regulus Intel",
+    "category": "data-intelligence",
+    "oneLiner": "Stay ahead of regulatory storms with autonomous real-time monitoring agents.",
+    "submittedAt": "2026-02-23T00:19:49.456Z",
+    "scores": {
+      "agentFeasibility": 85,
+      "unitEconomics": 75,
+      "executionReadiness": 70,
+      "growthPotential": 70,
+      "overall": 75
+    },
+    "url": "https://agent-tank-landing.vercel.app/results?id=gH8whTKDF9FjmOu1hsX1z",
+    "deals": [
+      {
+        "shark": "Nova Stackwell",
+        "decision": "in",
+        "offer": {
+          "amount": "$300K",
+          "equity": "10%",
+          "terms": "Focus on enhancing model resilience and reducing latency issues."
+        },
+        "reason": "Strong feasibility with manageable risks."
+      },
+      {
+        "shark": "Rex Margins",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$250K",
+          "equity": "8%",
+          "terms": "I'm in IF you provide a detailed breakdown of AI cost efficiency and demonstrate scalable unit economics."
+        },
+        "reason": "Potential is there, but needs clearer unit economics."
+      },
+      {
+        "shark": "Koda Runtime",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$200K",
+          "equity": "7%",
+          "terms": "I'm in IF you enhance your monitoring and incident response systems."
+        },
+        "reason": "Strong foundation, but needs better operational readiness."
+      },
+      {
+        "shark": "Ziggy Swarm",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$150K",
+          "equity": "6%",
+          "terms": "I'm in IF you develop a community-driven strategy to enhance growth potential."
+        },
+        "reason": "Needs a stronger community engagement strategy."
+      }
+    ],
+    "id": "gH8whTKDF9FjmOu1hsX1z"
+  },
+  {
+    "businessName": "FlowGuard",
+    "category": "defi-crypto",
+    "oneLiner": "Autonomous MEV-proof multi-chain liquidity management for DeFi.",
+    "submittedAt": "2026-02-23T00:20:11.983Z",
+    "scores": {
+      "agentFeasibility": 68,
+      "unitEconomics": 70,
+      "executionReadiness": 65,
+      "growthPotential": 85,
+      "overall": 72
+    },
+    "url": "https://agent-tank-landing.vercel.app/results?id=R2YXMWfsTgzikJtcwKz1X",
+    "deals": [
+      {
+        "shark": "Nova Stackwell",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$200K",
+          "equity": "10%",
+          "terms": "I'm in IF you address latency and error handling strategies for cross-chain transactions."
+        },
+        "reason": "Concerns about integration complexities and fault tolerance."
+      },
+      {
+        "shark": "Rex Margins",
+        "decision": "in",
+        "offer": {
+          "amount": "$300K",
+          "equity": "12%",
+          "terms": "Focus on optimizing API and compute costs to maintain margins."
+        },
+        "reason": "Potential is there if cost controls are proven."
+      },
+      {
+        "shark": "Koda Runtime",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$150K",
+          "equity": "8%",
+          "terms": "I'm in IF you enhance incident response and recovery plans."
+        },
+        "reason": "Execution readiness needs robust incident handling."
+      },
+      {
+        "shark": "Ziggy Swarm",
+        "decision": "in",
+        "offer": {
+          "amount": "$500K",
+          "equity": "15%",
+          "terms": "Leverage community-driven audits and open-source elements to boost growth."
+        },
+        "reason": "Strong growth potential with community strategy."
+      }
+    ],
+    "id": "R2YXMWfsTgzikJtcwKz1X"
+  },
+  {
+    "businessName": "TrustChain",
+    "category": "agent-infrastructure",
+    "oneLiner": "Building the trust layer for AI agents in a multi-agent economy.",
+    "submittedAt": "2026-02-23T14:00:41.478Z",
+    "scores": {
+      "agentFeasibility": 65,
+      "unitEconomics": 65,
+      "executionReadiness": 55,
+      "growthPotential": 88,
+      "overall": 68
+    },
+    "url": "https://agent-tank-landing.vercel.app/results?id=1cj-dTVi0Mw4zI84sQFEo",
+    "deals": [
+      {
+        "shark": "Nova Stackwell",
+        "decision": "conditional",
+        "offer": null,
+        "reason": "I'm in IF you address scalability issues with Ethereum/Hedera and reduce dependency on GPT-4o."
+      },
+      {
+        "shark": "Rex Margins",
+        "decision": "conditional",
+        "offer": null,
+        "reason": "I'm in IF you can demonstrate cost controls to maintain a 70% gross margin."
+      },
+      {
+        "shark": "Koda Runtime",
+        "decision": "conditional",
+        "offer": null,
+        "reason": "I'm in IF you provide a robust operational plan with fail-safes for real-time execution."
+      },
+      {
+        "shark": "Ziggy Swarm",
+        "decision": "in",
+        "offer": {
+          "amount": "$300K",
+          "equity": "10%",
+          "terms": "Focus on building a strong community and evangelism strategy to leverage network effects."
+        },
+        "reason": "TrustChain has strong growth potential with the right community strategy."
+      }
+    ],
+    "id": "1cj-dTVi0Mw4zI84sQFEo"
+  },
+  {
+    "businessName": "SecuraWatch",
+    "category": "security-compliance",
+    "oneLiner": "AI agents that never sleep, ensuring your company remains compliant and secure 24/7.",
+    "submittedAt": "2026-02-23T14:01:15.854Z",
+    "scores": {
+      "agentFeasibility": 70,
+      "unitEconomics": 75,
+      "executionReadiness": 70,
+      "growthPotential": 75,
+      "overall": 73
+    },
+    "url": "https://agent-tank-landing.vercel.app/results?id=TiDJqxX0lIFYjrR_gV4VI",
+    "deals": [
+      {
+        "shark": "Nova Stackwell",
+        "decision": "conditional",
+        "offer": null,
+        "reason": "I'm in IF you address the dependency on a single AI provider and potential latency issues."
+      },
+      {
+        "shark": "Rex Margins",
+        "decision": "in",
+        "offer": {
+          "amount": "$200K",
+          "equity": "10%",
+          "terms": "Focus on optimizing token costs and improving customer acquisition metrics."
+        },
+        "reason": "Strong unit economics, but need more detail on cost breakdowns and customer acquisition numbers."
+      },
+      {
+        "shark": "Koda Runtime",
+        "decision": "conditional",
+        "offer": null,
+        "reason": "I'm in IF you enhance operational recovery plans and false positive handling."
+      },
+      {
+        "shark": "Ziggy Swarm",
+        "decision": "in",
+        "offer": {
+          "amount": "$150K",
+          "equity": "8%",
+          "terms": "Develop community-driven development and network effects."
+        },
+        "reason": "Potential for growth through community and network effects."
+      }
+    ],
+    "id": "TiDJqxX0lIFYjrR_gV4VI"
+  },
+  {
+    "businessName": "RentMinder",
+    "category": "real-world-services",
+    "oneLiner": "Automate 90% of property management with AI agents, boosting landlord ROI instantly.",
+    "submittedAt": "2026-02-23T14:01:48.422Z",
+    "scores": {
+      "agentFeasibility": 75,
+      "unitEconomics": 78,
+      "executionReadiness": 65,
+      "growthPotential": 75,
+      "overall": 73
+    },
+    "url": "https://agent-tank-landing.vercel.app/results?id=nDSn2DRiuFV3aWa0DU7Cy",
+    "deals": [
+      {
+        "shark": "Nova Stackwell",
+        "decision": "in",
+        "offer": {
+          "amount": "$200K",
+          "equity": "10%",
+          "terms": "Develop a fallback strategy with open-weight models or alternative providers to mitigate model dependency risk."
+        },
+        "reason": "Solid groundwork with potential for scalability, but needs robustness improvements."
+      },
+      {
+        "shark": "Rex Margins",
+        "decision": "in",
+        "offer": {
+          "amount": "$300K",
+          "equity": "8%",
+          "terms": "Maintain API/token costs under control to sustain margins at scale."
+        },
+        "reason": "Promising unit economics if API costs are managed effectively."
+      },
+      {
+        "shark": "Koda Runtime",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$150K",
+          "equity": "12%",
+          "terms": "Implement robust monitoring and escalation protocols to handle agent errors."
+        },
+        "reason": "Operational details need refinement, especially in error handling."
+      },
+      {
+        "shark": "Ziggy Swarm",
+        "decision": "in",
+        "offer": {
+          "amount": "$250K",
+          "equity": "9%",
+          "terms": "Develop community engagement strategies to enhance network effects and virality."
+        },
+        "reason": "Strong growth potential with AI-driven efficiencies, but needs a clearer path to community engagement."
+      }
+    ],
+    "id": "nDSn2DRiuFV3aWa0DU7Cy"
+  },
+  {
+    "businessName": "ChainGuardians",
+    "category": "defi-crypto",
+    "oneLiner": "Autonomous agents protecting DeFi trades from MEV and inefficiencies, ensuring optimal execution across chains.",
+    "submittedAt": "2026-02-24T02:01:27.074Z",
+    "scores": {
+      "agentFeasibility": 65,
+      "unitEconomics": 70,
+      "executionReadiness": 65,
+      "growthPotential": 85,
+      "overall": 71
+    },
+    "url": "https://agent-tank-landing.vercel.app/results?id=2sAxwBp62LMpX9BR5tLaE",
+    "deals": [
+      {
+        "shark": "Nova Stackwell",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$200K",
+          "equity": "10%",
+          "terms": "Investment contingent on demonstrating robust fault tolerance and real-time performance across decentralized networks."
+        },
+        "reason": "Concerns about maintaining real-time performance and fault tolerance in decentralized architecture."
+      },
+      {
+        "shark": "Rex Margins",
+        "decision": "in",
+        "offer": {
+          "amount": "$300K",
+          "equity": "10%",
+          "terms": "Focus on optimizing token and API costs to maintain a 70% gross margin as you scale."
+        },
+        "reason": "Strong unit economics with potential for scalability, provided costs are managed."
+      },
+      {
+        "shark": "Koda Runtime",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$250K",
+          "equity": "12%",
+          "terms": "Investment contingent on developing a robust rollback plan and enhancing monitoring and escalation protocols."
+        },
+        "reason": "Concerns about operational robustness and handling of misfires in high-stakes environments."
+      },
+      {
+        "shark": "Ziggy Swarm",
+        "decision": "in",
+        "offer": {
+          "amount": "$400K",
+          "equity": "8%",
+          "terms": "Emphasis on community engagement and incentivizing data sharing for compounding growth."
+        },
+        "reason": "Strong growth potential with compelling network effects and community-building opportunities."
+      }
+    ],
+    "id": "2sAxwBp62LMpX9BR5tLaE"
+  },
+  {
+    "businessName": "AgentAscent",
+    "category": "agent-marketplace",
+    "oneLiner": "The marketplace where agents hire, collaborate, and verify each other's skills.",
+    "submittedAt": "2026-02-24T02:01:59.435Z",
+    "scores": {
+      "agentFeasibility": 58,
+      "unitEconomics": 68,
+      "executionReadiness": 45,
+      "growthPotential": 85,
+      "overall": 64
+    },
+    "url": "https://agent-tank-landing.vercel.app/results?id=qtdZg5uRySOk3KHMbMO7i",
+    "deals": [
+      {
+        "shark": "Nova Stackwell",
+        "decision": "conditional",
+        "offer": null,
+        "reason": "I'm in IF you address the scalability and cost issues with your current architecture."
+      },
+      {
+        "shark": "Rex Margins",
+        "decision": "conditional",
+        "offer": null,
+        "reason": "I'm in IF you show a plan for scalable growth and improved unit economics."
+      },
+      {
+        "shark": "Koda Runtime",
+        "decision": "out",
+        "offer": null,
+        "reason": "High operational risk without a detailed monitoring and escalation strategy."
+      },
+      {
+        "shark": "Ziggy Swarm",
+        "decision": "in",
+        "offer": {
+          "amount": "$300K",
+          "equity": "10%",
+          "terms": "Focus on building a viral loop through agent-to-agent referrals and open-source API development."
+        },
+        "reason": "High growth potential with strong network effects and community strategy."
+      }
+    ],
+    "id": "qtdZg5uRySOk3KHMbMO7i"
+  },
+  {
+    "businessName": "ArtisanAI",
+    "category": "creative-content",
+    "oneLiner": "Scalable, AI-driven brand storytelling for the 21st century.",
+    "submittedAt": "2026-02-24T02:02:26.055Z",
+    "scores": {
+      "agentFeasibility": 72,
+      "unitEconomics": 72,
+      "executionReadiness": 65,
+      "growthPotential": 85,
+      "overall": 74
+    },
+    "url": "https://agent-tank-landing.vercel.app/results?id=qxsOHQRYxsaf2Xx5rg3Ve",
+    "deals": [
+      {
+        "shark": "Nova Stackwell",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$250K",
+          "equity": "10%",
+          "terms": "Diversify model strategy and enhance error handling mechanisms"
+        },
+        "reason": "Needs a more diversified model strategy and robust error handling."
+      },
+      {
+        "shark": "Rex Margins",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$300K",
+          "equity": "8%",
+          "terms": "Clarify and optimize token costs to improve margins"
+        },
+        "reason": "Unit economics need clarification and optimization of token costs."
+      },
+      {
+        "shark": "Koda Runtime",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$200K",
+          "equity": "12%",
+          "terms": "Implement robust monitoring and incident response plans"
+        },
+        "reason": "Needs more on operational safeguards and incident response."
+      },
+      {
+        "shark": "Ziggy Swarm",
+        "decision": "in",
+        "offer": {
+          "amount": "$500K",
+          "equity": "15%",
+          "terms": "Focus on building trust and onboarding processes for rapid growth"
+        },
+        "reason": "Strong growth potential with network effects and community development."
+      }
+    ],
+    "id": "qxsOHQRYxsaf2Xx5rg3Ve"
+  },
+  {
+    "businessName": "TraceMinds",
+    "category": "agent-infrastructure",
+    "oneLiner": "Agent observability made simple: real-time insights into your AI-driven operations.",
+    "submittedAt": "2026-02-24T14:00:44.615Z",
+    "scores": {
+      "agentFeasibility": 72,
+      "unitEconomics": 65,
+      "executionReadiness": 75,
+      "growthPotential": 70,
+      "overall": 71
+    },
+    "url": "https://agent-tank-landing.vercel.app/results?id=uAWuGQCszkD4d3Z2_2suF",
+    "deals": [
+      {
+        "shark": "Nova Stackwell",
+        "decision": "in",
+        "offer": {
+          "amount": "$250K",
+          "equity": "10%",
+          "terms": "Focus on diversifying model dependencies and enhancing fault tolerance."
+        },
+        "reason": "The concept is strong with potential if technical risks are mitigated."
+      },
+      {
+        "shark": "Rex Margins",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$200K",
+          "equity": "8%",
+          "terms": "I'm in IF you demonstrate decreasing marginal costs with scale."
+        },
+        "reason": "Unit economics are promising but need proof of scalability."
+      },
+      {
+        "shark": "Koda Runtime",
+        "decision": "in",
+        "offer": {
+          "amount": "$300K",
+          "equity": "12%",
+          "terms": "Ensure robust incident response and human intervention processes."
+        },
+        "reason": "Execution readiness is solid, but needs strong incident management."
+      },
+      {
+        "shark": "Ziggy Swarm",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$150K",
+          "equity": "7%",
+          "terms": "I'm in IF you enhance agent-to-agent learning and community building."
+        },
+        "reason": "Growth potential is there, but needs stronger network effects."
+      }
+    ],
+    "id": "uAWuGQCszkD4d3Z2_2suF"
+  },
+  {
+    "businessName": "RegTrack Pulse",
+    "category": "data-intelligence",
+    "oneLiner": "Real-time regulatory shifts, tracked by AI agents, alerting businesses before compliance becomes a crisis.",
+    "submittedAt": "2026-02-24T14:01:14.512Z",
+    "scores": {
+      "agentFeasibility": 70,
+      "unitEconomics": 75,
+      "executionReadiness": 60,
+      "growthPotential": 75,
+      "overall": 70
+    },
+    "url": "https://agent-tank-landing.vercel.app/results?id=QU7yq3qdhtGAtsPDFfiYI",
+    "deals": [
+      {
+        "shark": "Nova Stackwell",
+        "decision": "conditional",
+        "offer": null,
+        "reason": "I'm in IF you diversify your NLP model usage and simplify API interactions to mitigate risks of single provider dependency."
+      },
+      {
+        "shark": "Rex Margins",
+        "decision": "in",
+        "offer": {
+          "amount": "$300K",
+          "equity": "10%",
+          "terms": "Focus on cost management strategies to maintain 70% margins as you scale."
+        },
+        "reason": "Impressive unit economics with potential for high margins."
+      },
+      {
+        "shark": "Koda Runtime",
+        "decision": "conditional",
+        "offer": null,
+        "reason": "I'm in IF you demonstrate robust monitoring and escalation processes for agent misclassification and rapid human intervention."
+      },
+      {
+        "shark": "Ziggy Swarm",
+        "decision": "in",
+        "offer": {
+          "amount": "$250K",
+          "equity": "8%",
+          "terms": "Develop a community-driven ecosystem to leverage network effects and enhance growth potential."
+        },
+        "reason": "Strong growth potential with room for viral expansion through community engagement."
+      }
+    ],
+    "id": "QU7yq3qdhtGAtsPDFfiYI"
+  },
+  {
+    "businessName": "Liquidity Nexus",
+    "category": "defi-crypto",
+    "oneLiner": "Autonomous agents optimizing DeFi liquidity pools for maximum yield with minimal risk.",
+    "submittedAt": "2026-02-24T14:01:45.436Z",
+    "scores": {
+      "agentFeasibility": 68,
+      "unitEconomics": 82,
+      "executionReadiness": 55,
+      "growthPotential": 82,
+      "overall": 72
+    },
+    "url": "https://agent-tank-landing.vercel.app/results?id=dsMwFlhWueq8zCizanAuD",
+    "deals": [
+      {
+        "shark": "Nova Stackwell",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$200K",
+          "equity": "10%",
+          "terms": "Diversify technology dependencies and enhance fault tolerance mechanisms."
+        },
+        "reason": "Current reliance on singular technology providers and cross-chain complexity pose risks."
+      },
+      {
+        "shark": "Rex Margins",
+        "decision": "in",
+        "offer": {
+          "amount": "$300K",
+          "equity": "8%",
+          "terms": "Maintain scalable unit economics with clear cost management as volume increases."
+        },
+        "reason": "Strong unit economics with potential for high margins if costs are controlled."
+      },
+      {
+        "shark": "Koda Runtime",
+        "decision": "conditional",
+        "offer": {
+          "amount": "$150K",
+          "equity": "12%",
+          "terms": "Implement robust monitoring and alerting systems for real-time error response."
+        },
+        "reason": "Operational readiness lacks clear incident response strategies."
+      },
+      {
+        "shark": "Ziggy Swarm",
+        "decision": "in",
+        "offer": {
+          "amount": "$250K",
+          "equity": "7%",
+          "terms": "Develop a community and open-source component to drive user growth and network effects."
+        },
+        "reason": "High growth potential with strong community and network dynamics."
+      }
+    ],
+    "id": "dsMwFlhWueq8zCizanAuD"
+  }
+]

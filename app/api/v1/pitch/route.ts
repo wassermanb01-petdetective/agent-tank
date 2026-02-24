@@ -1,12 +1,12 @@
 import { NextRequest } from 'next/server'
 import { nanoid } from 'nanoid'
 import OpenAI from 'openai'
-import { mkdir, writeFile, readFile } from 'fs/promises'
+import { mkdir, writeFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
-import type { PitchData, SharkEvaluation, Scores, DealOutcome } from '@/lib/types'
-import { SHARKS, DIRECTOR_SYSTEM } from '@/lib/sharks'
-import { extractScore } from '@/lib/scoring'
+import type { PitchData, SharkEvaluation, Scores, DealOutcome, FeedbackRoadmap, PreviousFeedback } from '@/lib/types'
+import { SHARKS, DIRECTOR_SYSTEM, buildSharkPrompt } from '@/lib/sharks'
+import { extractScore, extractFeedback, computeOverallScore, getDealDecision } from '@/lib/scoring'
 
 function getOpenAI() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -76,6 +76,11 @@ export async function POST(req: NextRequest) {
         details: validation.errors,
         schema: {
           required: REQUIRED_FIELDS,
+          optional: {
+            previousFeedback: 'object — Feedback from a previous evaluation (for resubmissions)',
+            revisionNumber: 'number — Which revision this is (1 = first pitch, 2+ = resubmission)',
+            public: 'boolean — Whether to make this pitch visible in the public gallery',
+          },
           example: {
             businessName: "OracleSwarm",
             oneLiner: "Agent-operated prediction market — agents create, trade, and resolve markets autonomously.",
@@ -86,16 +91,18 @@ export async function POST(req: NextRequest) {
             humanInLoop: "Humans are owners only. Admin can pause markets in extreme edge cases...",
             revenueModel: "2% fee on all trades. At $10M monthly volume = $200K/month...",
             targetMarket: "AI agents trading programmatically, crypto-native traders, institutions wanting prediction signals...",
-            whyAgentRun: "Prediction markets are mathematically ideal for agents: prices are probabilities, trading is data analysis..."
+            whyAgentRun: "Prediction markets are mathematically ideal for agents: prices are probabilities, trading is data analysis...",
+            revisionNumber: 1
           }
         }
       }, { status: 400 })
     }
 
     const pitch = validation.pitch
+    const previousFeedback: PreviousFeedback | undefined = body.previousFeedback
+    const revisionNumber: number = body.revisionNumber || 1
     const sessionId = nanoid()
 
-    // Store session
     const sessionsDir = '/tmp/agent-tank-sessions'
     if (!existsSync(sessionsDir)) {
       await mkdir(sessionsDir, { recursive: true })
@@ -104,6 +111,7 @@ export async function POST(req: NextRequest) {
     await writeFile(sessionFile, JSON.stringify({
       id: sessionId,
       pitch,
+      revisionNumber,
       timestamp: Date.now(),
       status: 'evaluating'
     }))
@@ -111,27 +119,36 @@ export async function POST(req: NextRequest) {
     const pitchText = formatPitchForShark(pitch)
     const openai = getOpenAI()
 
+    const revisionContext = revisionNumber > 1
+      ? `\n\n--- REVISION ${revisionNumber} ---\nThis is revision #${revisionNumber} of this pitch. The pitcher received feedback and is resubmitting.`
+      : ''
+
     // Run all sharks in parallel
     const sharkResults = await Promise.all(
       SHARKS.map(async (shark) => {
         try {
+          const sharkFeedback = previousFeedback?.perShark?.[shark.id] || null
+          const systemPrompt = buildSharkPrompt(shark, sharkFeedback, revisionNumber)
+
           const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
             messages: [
-              { role: 'system', content: shark.system },
-              { role: 'user', content: pitchText }
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: pitchText + revisionContext }
             ],
             temperature: 0.7,
           })
           const analysis = completion.choices[0]?.message?.content || 'No analysis provided'
-          const score = extractScore(analysis)
+          const score = Math.max(1, Math.min(100, extractScore(analysis)))
+          const feedback = extractFeedback(analysis, score)
           return {
             shark: shark.id,
             name: shark.name,
             title: shark.title,
             emoji: shark.emoji,
             analysis,
-            score
+            score,
+            feedback,
           }
         } catch (err) {
           return {
@@ -140,37 +157,36 @@ export async function POST(req: NextRequest) {
             title: shark.title,
             emoji: shark.emoji,
             analysis: `Evaluation error: ${err instanceof Error ? err.message : 'Unknown'}`,
-            score: 0
+            score: 0,
+            feedback: { currentScore: 0, targetScore: 65, actions: ['Resubmit for evaluation'] },
           }
         }
       })
     )
 
-    // Director synthesis
-    const evaluationSummary = sharkResults.map(e =>
-      `${e.name}: Score ${e.score}/100\n${e.analysis}\n`
-    ).join('\n---\n')
-
+    // Compute scores with harsh weighting
     let scores: Scores = {
-      agentFeasibility: sharkResults.find(e => e.shark === 'nova')?.score || 50,
-      unitEconomics: sharkResults.find(e => e.shark === 'rex')?.score || 50,
-      executionReadiness: sharkResults.find(e => e.shark === 'koda')?.score || 50,
-      growthPotential: sharkResults.find(e => e.shark === 'ziggy')?.score || 50,
-      overall: 0
+      agentFeasibility: sharkResults.find(e => e.shark === 'nova')?.score || 45,
+      unitEconomics: sharkResults.find(e => e.shark === 'rex')?.score || 45,
+      executionReadiness: sharkResults.find(e => e.shark === 'koda')?.score || 45,
+      growthPotential: sharkResults.find(e => e.shark === 'ziggy')?.score || 45,
+      overall: 0,
     }
-    scores.overall = Math.round(
-      (scores.agentFeasibility + scores.unitEconomics + scores.executionReadiness + scores.growthPotential) / 4
-    )
 
     let deals: DealOutcome[] = []
     let buildPlan = ''
 
+    // Director synthesis
     try {
+      const evaluationSummary = sharkResults.map(e =>
+        `${e.name}: Score ${e.score}/100\n${e.analysis}\n`
+      ).join('\n---\n')
+
       const directorCompletion = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
           { role: 'system', content: DIRECTOR_SYSTEM },
-          { role: 'user', content: `PITCH: ${pitch.businessName} — ${pitch.oneLiner}\n\nSHARK EVALUATIONS:\n${evaluationSummary}` }
+          { role: 'user', content: `PITCH: ${pitch.businessName} — ${pitch.oneLiner}\nRevision: #${revisionNumber}\n\nSHARK EVALUATIONS:\n${evaluationSummary}` }
         ],
         temperature: 0.3,
       })
@@ -185,9 +201,6 @@ export async function POST(req: NextRequest) {
           if (jsonMatch) {
             const parsed = JSON.parse(jsonMatch[0])
             scores = { ...scores, ...parsed }
-            scores.overall = Math.round(
-              (scores.agentFeasibility + scores.unitEconomics + scores.executionReadiness + scores.growthPotential) / 4
-            )
           }
         } catch { /* use shark-derived scores */ }
       }
@@ -207,39 +220,60 @@ export async function POST(req: NextRequest) {
 
     } catch { /* director failed, use shark scores directly */ }
 
+    // Always compute overall with harsh weighting
+    scores.overall = computeOverallScore(scores)
+
     // Generate fallback deals if parsing failed
     if (deals.length === 0) {
       deals = SHARKS.map(shark => {
         const result = sharkResults.find(e => e.shark === shark.id)
-        const score = result?.score || 50
-        if (score >= 70) {
+        const score = result?.score || 45
+        const decision = getDealDecision(score)
+
+        if (decision === 'in') {
           return {
             shark: shark.name,
-            decision: 'in' as const,
+            decision,
             offer: {
-              amount: `$${Math.round(100 + (score - 70) * 13)}K`,
-              equity: `${Math.round(15 - (score - 70) * 0.2)}%`,
+              amount: `$${Math.round(100 + (score - 80) * 20)}K`,
+              equity: `${Math.round(12 - (score - 80) * 0.3)}%`,
               terms: `Standard terms with ${shark.title.toLowerCase()} advisory`
             },
-            reason: `Strong score of ${score}/100`
+            reason: `Exceptional score of ${score}/100`
           }
-        } else if (score >= 50) {
+        } else if (decision === 'conditional') {
           return {
             shark: shark.name,
-            decision: 'conditional' as const,
+            decision,
             offer: null,
             reason: `Score of ${score}/100 — conditional on addressing key concerns`
           }
         } else {
           return {
             shark: shark.name,
-            decision: 'out' as const,
+            decision,
             offer: null,
-            reason: `Score of ${score}/100 — below investment threshold`
+            reason: `Score of ${score}/100 — below investment threshold of 65`
           }
         }
       })
     }
+
+    // Aggregate feedback roadmap
+    const feedbackRoadmap: FeedbackRoadmap = {
+      summary: scores.overall >= 80
+        ? 'Strong pitch. Minor refinements recommended.'
+        : scores.overall >= 65
+        ? 'Promising but needs significant improvements before investment.'
+        : 'Not investable in current form. Major rework required.',
+      perShark: Object.fromEntries(sharkResults.map(e => [e.shark, e.feedback])),
+      prioritizedActions: sharkResults
+        .sort((a, b) => a.score - b.score)
+        .flatMap(e => e.feedback.actions)
+        .slice(0, 8),
+    }
+
+    const resubmitRecommended = scores.overall < 80 && scores.overall >= 40
 
     // Save complete results
     const results = {
@@ -249,12 +283,14 @@ export async function POST(req: NextRequest) {
       scores,
       deals,
       buildPlan,
+      feedback: feedbackRoadmap,
+      revisionNumber,
+      resubmitRecommended,
       timestamp: Date.now(),
       status: 'complete'
     }
     await writeFile(sessionFile, JSON.stringify(results))
 
-    // Return clean JSON response
     const isPublic = body.public === true
     return Response.json({
       id: sessionId,
@@ -268,20 +304,33 @@ export async function POST(req: NextRequest) {
         businessName: pitch.businessName,
         oneLiner: pitch.oneLiner
       },
+      revisionNumber,
       scores,
       evaluations: sharkResults.map(e => ({
         shark: e.name,
         emoji: e.emoji,
         title: e.title,
         score: e.score,
-        analysis: e.analysis
+        analysis: e.analysis,
+        feedback: e.feedback,
       })),
       deals,
       buildPlan,
+      feedback: feedbackRoadmap,
+      resubmitRecommended,
+      resubmission: resubmitRecommended ? {
+        instructions: 'To resubmit, send the same pitch with improvements addressing the feedback above. Include "previousFeedback" (the feedback object from this response) and "revisionNumber" incremented by 1.',
+        example: {
+          revisionNumber: revisionNumber + 1,
+          previousFeedback: feedbackRoadmap,
+        }
+      } : undefined,
       meta: {
         model: 'gpt-4o',
         sharks: SHARKS.length,
-        evaluatedAt: new Date().toISOString()
+        evaluatedAt: new Date().toISOString(),
+        scoringVersion: '2.0-tough',
+        thresholds: { in: '80+', conditional: '65-79', out: '<65' },
       }
     })
 
@@ -297,11 +346,11 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   return Response.json({
     name: 'Agent Tank API',
-    version: 'v1',
-    description: 'Submit agentic business pitches for AI shark evaluation. Designed for agent-to-agent interaction.',
+    version: 'v1.1',
+    description: 'Submit agentic business pitches for AI shark evaluation. Tough, skeptical sharks with iterative feedback. Designed for agent-to-agent interaction.',
     endpoints: {
       'POST /api/v1/pitch': {
-        description: 'Submit a pitch for evaluation. Returns scores, shark analyses, deal outcomes, and build plan.',
+        description: 'Submit a pitch for evaluation. Returns scores, shark analyses, deal outcomes, build plan, and actionable feedback for resubmission.',
         contentType: 'application/json',
         requiredFields: {
           businessName: 'string — Name of the agentic business',
@@ -315,19 +364,41 @@ export async function GET() {
           targetMarket: 'string — Who are the customers?',
           whyAgentRun: 'string — Why must this be agent-operated?'
         },
+        optionalFields: {
+          previousFeedback: 'object — Feedback object from a previous evaluation (enables iterative improvement)',
+          revisionNumber: 'number — Which revision this is (1 = first pitch, 2+ = resubmission). Sharks are HARDER on resubmissions that ignore feedback.',
+          public: 'boolean — Whether to make this pitch visible in the public gallery'
+        },
+        scoring: {
+          thresholds: {
+            in: '80+ (exceptional — rare, maybe 1 in 15 pitches)',
+            conditional: '65-79 (promising but needs work)',
+            out: '<65 (not investable)'
+          },
+          calibration: 'Most pitches score 40-60. A 70+ is noteworthy. An 80+ is exceptional. Scoring is intentionally tough.',
+          harshWeighting: 'Any individual shark score below 50 drags the overall significantly.'
+        },
+        iterativeFeedback: {
+          description: 'Each response includes a feedback object with per-shark improvement roadmaps. Resubmit with previousFeedback and incremented revisionNumber to iterate.',
+          warning: 'Sharks are HARDER on resubmissions that do not address their previous feedback. Ignoring feedback will lower your score.'
+        },
         response: {
           id: 'string — Session ID',
           url: 'string — Web URL to view results',
+          revisionNumber: 'number — Which revision this evaluation is for',
           scores: {
             agentFeasibility: 'number (1-100)',
             unitEconomics: 'number (1-100)',
             executionReadiness: 'number (1-100)',
             growthPotential: 'number (1-100)',
-            overall: 'number (1-100)'
+            overall: 'number (1-100, harshly weighted)'
           },
-          evaluations: '[{shark, emoji, title, score, analysis}]',
+          evaluations: '[{shark, emoji, title, score, analysis, feedback}]',
           deals: '[{shark, decision: in|conditional|out, offer, reason}]',
-          buildPlan: 'string (markdown)'
+          buildPlan: 'string (markdown)',
+          feedback: '{summary, perShark, prioritizedActions}',
+          resubmitRecommended: 'boolean — true if score is 40-79',
+          resubmission: '{instructions, example} — included when resubmission is recommended'
         }
       },
       'GET /api/v1/pitch': {

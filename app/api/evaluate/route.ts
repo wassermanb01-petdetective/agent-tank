@@ -4,8 +4,9 @@ import OpenAI from 'openai'
 import { mkdir, writeFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
-import type { PitchData, SharkEvaluation, TankResults, Scores, DealOutcome } from '@/lib/types'
-import { SHARKS, DIRECTOR_SYSTEM } from '@/lib/sharks'
+import type { PitchData, SharkEvaluation, TankResults, Scores, DealOutcome, FeedbackRoadmap, PreviousFeedback } from '@/lib/types'
+import { SHARKS, DIRECTOR_SYSTEM, buildSharkPrompt } from '@/lib/sharks'
+import { extractScore, extractFeedback, computeOverallScore, getDealDecision } from '@/lib/scoring'
 
 function getOpenAI() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -13,31 +14,31 @@ function getOpenAI() {
 
 export async function POST(req: NextRequest) {
   try {
-    const pitchData: PitchData = await req.json()
+    const body = await req.json()
+    const pitchData: PitchData = body
+    const previousFeedback: PreviousFeedback | undefined = body.previousFeedback
+    const revisionNumber: number = body.revisionNumber || 1
     const sessionId = nanoid()
 
-    // Create sessions directory if it doesn't exist
     const sessionsDir = '/tmp/agent-tank-sessions'
     if (!existsSync(sessionsDir)) {
       await mkdir(sessionsDir, { recursive: true })
     }
 
-    // Store initial pitch data
     const sessionFile = path.join(sessionsDir, `${sessionId}.json`)
     await writeFile(sessionFile, JSON.stringify({
       id: sessionId,
       pitch: pitchData,
+      revisionNumber,
       timestamp: Date.now(),
       status: 'evaluating'
     }))
 
-    // Create a ReadableStream for Server-Sent Events
     const encoder = new TextEncoder()
-    
+
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // Format pitch for sharks
           const pitchText = `
 Business: ${pitchData.businessName}
 One-liner: ${pitchData.oneLiner}
@@ -67,38 +68,39 @@ Why Agent-Run:
 ${pitchData.whyAgentRun}
           `.trim()
 
+          const revisionContext = revisionNumber > 1
+            ? `\n\n--- REVISION ${revisionNumber} ---\nThis is revision #${revisionNumber} of this pitch. The pitcher received feedback and is resubmitting.`
+            : ''
+
           const evaluations: SharkEvaluation[] = []
 
-          // Evaluate each shark in parallel but stream results as they complete
           const sharkPromises = SHARKS.map(async (shark) => {
             try {
+              const sharkFeedback = previousFeedback?.perShark?.[shark.id] || null
+              const systemPrompt = buildSharkPrompt(shark, sharkFeedback, revisionNumber)
+
               const completion = await getOpenAI().chat.completions.create({
                 model: 'gpt-4o',
                 messages: [
-                  { role: 'system', content: shark.system },
-                  { role: 'user', content: pitchText }
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: pitchText + revisionContext }
                 ],
                 temperature: 0.7,
               })
 
               const analysis = completion.choices[0]?.message?.content || 'No analysis provided'
-              
-              // Extract score from the analysis (look for score pattern)
-              const scoreMatch = analysis.match(/score[:\s]*(\d+)/i)
-              let score = scoreMatch ? parseInt(scoreMatch[1]) : 50
-
-              // Ensure score is within valid range
-              score = Math.max(1, Math.min(100, score))
+              const score = Math.max(1, Math.min(100, extractScore(analysis)))
+              const feedback = extractFeedback(analysis, score)
 
               const evaluation: SharkEvaluation = {
                 shark: shark.id,
                 analysis,
-                score
+                score,
+                feedback,
               }
 
               evaluations.push(evaluation)
 
-              // Stream this shark's evaluation
               const eventData = JSON.stringify({
                 shark: shark.id,
                 name: shark.name,
@@ -106,7 +108,8 @@ ${pitchData.whyAgentRun}
                 emoji: shark.emoji,
                 color: shark.color,
                 analysis,
-                score
+                score,
+                feedback,
               })
 
               controller.enqueue(encoder.encode(`event: shark\ndata: ${eventData}\n\n`))
@@ -117,19 +120,19 @@ ${pitchData.whyAgentRun}
               const evaluation: SharkEvaluation = {
                 shark: shark.id,
                 analysis: `Error occurred during evaluation: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                score: 0
+                score: 0,
+                feedback: { currentScore: 0, targetScore: 65, actions: ['Resubmit for evaluation'] },
               }
               evaluations.push(evaluation)
               return evaluation
             }
           })
 
-          // Wait for all sharks to complete
           await Promise.all(sharkPromises)
 
-          // Now get director results
+          // Director synthesis
           try {
-            const evaluationSummary = evaluations.map(e => 
+            const evaluationSummary = evaluations.map(e =>
               `${SHARKS.find(s => s.id === e.shark)?.name}: Score ${e.score}/100\n${e.analysis}\n`
             ).join('\n---\n')
 
@@ -139,6 +142,7 @@ Here are the shark evaluations for the pitch:
 PITCH SUMMARY:
 Business: ${pitchData.businessName}
 One-liner: ${pitchData.oneLiner}
+Revision: #${revisionNumber}
 
 SHARK EVALUATIONS:
 ${evaluationSummary}
@@ -157,120 +161,118 @@ Based on these evaluations, provide your director analysis.
 
             const directorResponse = directorCompletion.choices[0]?.message?.content || ''
 
-            // Parse director response
-            const scoresMatch = directorResponse.match(/---SCORES---[\s\S]*?(\{[^}]+\})/)
-            const dealsMatch = directorResponse.match(/---DEALS---[\s\S]*?(\[[^\]]+\])/)
-            const buildPlanMatch = directorResponse.match(/---BUILDPLAN---[\s\S]*?(.*)$/)
-
             let scores: Scores = {
-              agentFeasibility: evaluations.find(e => e.shark === 'nova')?.score || 50,
-              unitEconomics: evaluations.find(e => e.shark === 'rex')?.score || 50,
-              executionReadiness: evaluations.find(e => e.shark === 'koda')?.score || 50,
-              growthPotential: evaluations.find(e => e.shark === 'ziggy')?.score || 50,
-              overall: 50
+              agentFeasibility: evaluations.find(e => e.shark === 'nova')?.score || 45,
+              unitEconomics: evaluations.find(e => e.shark === 'rex')?.score || 45,
+              executionReadiness: evaluations.find(e => e.shark === 'koda')?.score || 45,
+              growthPotential: evaluations.find(e => e.shark === 'ziggy')?.score || 45,
+              overall: 0,
             }
 
             let deals: DealOutcome[] = []
 
-            // Try to parse scores
+            const scoresMatch = directorResponse.match(/---SCORES---[\s\S]*?(\{[^}]+\})/)
             if (scoresMatch) {
               try {
                 const parsedScores = JSON.parse(scoresMatch[1])
                 scores = { ...scores, ...parsedScores }
-                scores.overall = Math.round((scores.agentFeasibility + scores.unitEconomics + scores.executionReadiness + scores.growthPotential) / 4)
               } catch (e) {
                 console.error('Error parsing scores:', e)
               }
             }
 
-            // Try to parse deals
+            scores.overall = computeOverallScore(scores)
+
+            const dealsMatch = directorResponse.match(/---DEALS---[\s\S]*?(\[[\s\S]*?\])/)
             if (dealsMatch) {
               try {
                 deals = JSON.parse(dealsMatch[1])
               } catch (e) {
                 console.error('Error parsing deals:', e)
-                // Generate fallback deals based on scores
-                deals = SHARKS.map(shark => {
-                  const evaluation = evaluations.find(e => e.shark === shark.id)
-                  const score = evaluation?.score || 50
-                  
-                  if (score >= 70) {
-                    return {
-                      shark: shark.name,
-                      decision: 'in' as const,
-                      offer: {
-                        amount: `$${Math.round(100 + (score - 70) * 10)}K`,
-                        equity: `${Math.round(8 + (80 - score) * 0.2)}%`,
-                        terms: `Subject to ${shark.title.toLowerCase()} due diligence`
-                      },
-                      reason: `Strong score of ${score}/100 in my area of expertise`
-                    }
-                  } else if (score >= 50) {
-                    return {
-                      shark: shark.name,
-                      decision: 'conditional' as const,
-                      offer: null,
-                      reason: `Conditional on addressing concerns raised in evaluation`
-                    }
-                  } else {
-                    return {
-                      shark: shark.name,
-                      decision: 'out' as const,
-                      offer: null,
-                      reason: `Score of ${score}/100 is below my threshold`
-                    }
-                  }
-                })
               }
             }
 
-            const buildPlan = buildPlanMatch ? buildPlanMatch[1].trim() : `
-## Quick Build Plan
+            // Fallback deals
+            if (deals.length === 0) {
+              deals = SHARKS.map(shark => {
+                const evaluation = evaluations.find(e => e.shark === shark.id)
+                const score = evaluation?.score || 45
+                const decision = getDealDecision(score)
 
-### Recommended Agent Stack
-- **Framework**: LangChain or CrewAI for agent orchestration
-- **Models**: OpenAI GPT-4o for reasoning, Claude-3.5 for analysis
-- **Tools**: Custom APIs and integrations based on your architecture
+                if (decision === 'in') {
+                  return {
+                    shark: shark.name,
+                    decision,
+                    offer: {
+                      amount: `$${Math.round(100 + (score - 80) * 20)}K`,
+                      equity: `${Math.round(12 - (score - 80) * 0.3)}%`,
+                      terms: `Subject to ${shark.title.toLowerCase()} due diligence`
+                    },
+                    reason: `Exceptional score of ${score}/100`,
+                  }
+                } else if (decision === 'conditional') {
+                  return {
+                    shark: shark.name,
+                    decision,
+                    offer: null,
+                    reason: `Score of ${score}/100 — conditional on addressing key concerns`,
+                  }
+                } else {
+                  return {
+                    shark: shark.name,
+                    decision,
+                    offer: null,
+                    reason: `Score of ${score}/100 — below investment threshold of 65`,
+                  }
+                }
+              })
+            }
 
-### MVP Features
-1. Core agent functionality
-2. Basic user interface
-3. Essential integrations
-4. Monitoring and logging
+            const buildPlanMatch = directorResponse.match(/---BUILDPLAN---[\s\S]*?(.*)$/s)
+            const buildPlan = buildPlanMatch ? buildPlanMatch[1].trim() : '## Build plan unavailable — see shark feedback for next steps.'
 
-### Timeline
-- **Week 1-2**: Core agent development
-- **Week 3-4**: Integration and testing
-- **Month 2**: MVP deployment and iteration
+            // Aggregate feedback
+            const feedbackRoadmap: FeedbackRoadmap = {
+              summary: scores.overall >= 80
+                ? 'Strong pitch. Minor refinements recommended.'
+                : scores.overall >= 65
+                ? 'Promising but needs significant improvements before investment.'
+                : 'Not investable in current form. Major rework required.',
+              perShark: Object.fromEntries(evaluations.map(e => [e.shark, e.feedback])),
+              prioritizedActions: evaluations
+                .sort((a, b) => a.score - b.score)
+                .flatMap(e => e.feedback.actions)
+                .slice(0, 8),
+            }
 
-### First Steps
-1. Set up development environment
-2. Implement core agent logic
-3. Build initial user interface
-            `.trim()
+            const resubmitRecommended = scores.overall < 80 && scores.overall >= 40
 
-            // Save full results to session file
             const finalResults: TankResults = {
               pitch: pitchData,
               evaluations,
               scores,
               deals,
-              buildPlan
+              buildPlan,
+              feedback: feedbackRoadmap,
+              revisionNumber,
+              resubmitRecommended,
             }
 
             await writeFile(sessionFile, JSON.stringify({
               ...finalResults,
               id: sessionId,
               timestamp: Date.now(),
-              status: 'complete'
+              status: 'complete',
             }))
 
-            // Stream final results
             controller.enqueue(encoder.encode(`event: results\ndata: ${JSON.stringify({
               scores,
               deals,
               buildPlan,
-              sessionId
+              feedback: feedbackRoadmap,
+              revisionNumber,
+              resubmitRecommended,
+              sessionId,
             })}\n\n`))
 
           } catch (error) {
@@ -281,7 +283,7 @@ Based on these evaluations, provide your director analysis.
           }
 
           controller.close()
-          
+
         } catch (error) {
           console.error('Stream error:', error)
           controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({
