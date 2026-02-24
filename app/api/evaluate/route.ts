@@ -228,7 +228,7 @@ Based on these evaluations, provide your director analysis.
               })
             }
 
-            const buildPlanMatch = directorResponse.match(/---BUILDPLAN---[\s\S]*?(.*)$/s)
+            const buildPlanMatch = directorResponse.match(new RegExp('---BUILDPLAN---[\\s\\S]*?(.*)$', 's'))
             const buildPlan = buildPlanMatch ? buildPlanMatch[1].trim() : '## Build plan unavailable — see shark feedback for next steps.'
 
             // Aggregate feedback
